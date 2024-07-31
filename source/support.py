@@ -72,3 +72,23 @@ def import_folder_dict(*path, subordinate=False):
                 surf = pygame.image.load(full_path).convert_alpha()
                 frames[file_name.split(".")[0]] = surf
     return frames
+
+
+def import_character(cols, rows, *path):
+    tiles = import_tiles(cols, rows, *path)
+    frames = {}
+    directions = ["down", "left", "right", "up"]
+
+    for index, direction in enumerate(directions):
+        frames[direction] = [tiles[(col, index)] for col in range(cols)]
+        frames[f"{direction}_idle"] = [tiles[0, index]]
+    return frames
+
+
+def import_characters(*path):
+    frames = {}
+    for _, _, file_names in walk(join(*path)):
+        for file_name in file_names:
+            name = file_name.split(".")[0]
+            frames[name] = import_character(4, 4, *path, name)
+    return frames

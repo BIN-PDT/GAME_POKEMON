@@ -47,6 +47,8 @@
    <properties>
     <property name="character_id" value="Nurse"/>
     <property name="graphic" value="purple_girl"/>
+    <property name="direction" value="down"/>
+    <property name="radius" value="0"/>
    </properties>
    <point/>
   </object>

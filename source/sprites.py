@@ -48,3 +48,10 @@ class MonsterPatchSprite(Sprite):
         z = WORLD_LAYERS["main" if self.biome != "sand" else "bg"]
         super().__init__(pos, surf, groups, z)
         self.y_sort -= 40
+
+
+class TransitionSprite(Sprite):
+    def __init__(self, pos, size, target, groups):
+        surf = pygame.Surface(size)
+        super().__init__(pos, surf, groups)
+        self.target = target

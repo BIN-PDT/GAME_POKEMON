@@ -1,6 +1,7 @@
 from settings import *
 from os import walk
 from os.path import join
+from pytmx.util_pygame import load_pygame
 
 
 def import_image(*path, alpha=True, format="png"):
@@ -92,6 +93,16 @@ def import_characters(*path):
             name = file_name.split(".")[0]
             frames[name] = import_character(4, 4, *path, name)
     return frames
+
+
+def import_maps(*path):
+    tmx_maps = {}
+    for folder_path, _, file_names in walk(join(*path)):
+        for file_name in file_names:
+            tmx_maps[file_name.split(".")[0]] = load_pygame(
+                join(folder_path, file_name)
+            )
+    return tmx_maps
 
 
 def check_connections(radius, entity, target, tolerance=30):

@@ -92,3 +92,26 @@ def import_characters(*path):
             name = file_name.split(".")[0]
             frames[name] = import_character(4, 4, *path, name)
     return frames
+
+
+def check_connections(radius, entity, target, tolerance=30):
+    relation = Vector(target.rect.center) - Vector(entity.rect.center)
+    if relation.length() < radius:
+        if (
+            abs(relation.y) < tolerance
+            and (
+                entity.facing_direction == "left"
+                and relation.x < 0
+                or entity.facing_direction == "right"
+                and relation.x > 0
+            )
+        ) or (
+            abs(relation.x) < tolerance
+            and (
+                entity.facing_direction == "up"
+                and relation.y < 0
+                or entity.facing_direction == "down"
+                and relation.y > 0
+            )
+        ):
+            return True

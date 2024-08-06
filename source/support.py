@@ -105,6 +105,19 @@ def import_maps(*path):
     return tmx_maps
 
 
+def import_monsters(cols, rows, *path):
+    frames = {}
+    for _, _, file_names in walk(join(*path)):
+        for file_name in file_names:
+            name = file_name.split(".")[0]
+            frames[name] = {}
+
+            tiles = import_tiles(cols, rows, *path, name)
+            for index, key in enumerate(("idle", "attack")):
+                frames[name][key] = [tiles[(col, index)] for col in range(cols)]
+    return frames
+
+
 def check_connections(radius, entity, target, tolerance=30):
     relation = Vector(target.rect.center) - Vector(entity.rect.center)
     if relation.length() < radius:
@@ -126,3 +139,15 @@ def check_connections(radius, entity, target, tolerance=30):
             )
         ):
             return True
+
+
+def draw_bar(surface, frame, current, maximum, fg_color, bg_color, radius=1):
+    # CALCULATE RATIO.
+    ratio = frame.width / maximum
+    progress = max(0, min(frame.width, current * ratio))
+    # BACKGROUND (TOTAL) & FOREGROUD (CURRENT).
+    bg_rect = frame.copy()
+    fg_rect = pygame.FRect(frame.topleft, (progress, frame.height))
+    # DISPLAY.
+    pygame.draw.rect(surface, bg_color, bg_rect, 0, radius)
+    pygame.draw.rect(surface, fg_color, fg_rect, 0, radius)

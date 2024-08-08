@@ -1,6 +1,7 @@
 from settings import *
 from random import uniform
 from support import draw_bar
+from timers import Timer
 
 
 # OVERWOLRD SPRITES.
@@ -77,6 +78,11 @@ class MonsterSprite(pygame.sprite.Sprite):
         super().__init__(groups)
         self.image = self.frames[self.state][self.frame_index]
         self.rect = self.image.get_frect(center=pos)
+        self.is_highlighted = False
+        # TIMERS.
+        self.timers = {
+            "remove highlight": Timer(250, command=lambda: self.set_highlight(False))
+        }
 
     def animate(self, dt):
         frames = self.frames[self.state]
@@ -86,8 +92,35 @@ class MonsterSprite(pygame.sprite.Sprite):
 
         self.image = frames[int(self.frame_index)]
 
+        if self.is_highlighted:
+            mask_surf = pygame.mask.from_surface(self.image).to_surface()
+            mask_surf.set_colorkey("black")
+            self.image = mask_surf
+
+    def set_highlight(self, value):
+        self.is_highlighted = value
+        if value:
+            self.timers["remove highlight"].activate()
+
     def update(self, dt):
+        for timer in self.timers.values():
+            timer.update()
         self.animate(dt)
+        self.monster.update(dt)
+
+
+class MonsterOutlineSprite(pygame.sprite.Sprite):
+    def __init__(self, frames, groups, monster):
+        self.z = BATTLE_LAYERS["outline"]
+        super().__init__(groups)
+        self.monster = monster
+        self.frames = frames
+
+        self.image = self.frames[self.monster.state][int(self.monster.frame_index)]
+        self.rect = self.image.get_frect(center=self.monster.rect.center)
+
+    def update(self, _):
+        self.image = self.frames[self.monster.state][int(self.monster.frame_index)]
 
 
 class MonsterNameSprite(pygame.sprite.Sprite):

@@ -118,6 +118,32 @@ def import_monsters(cols, rows, *path):
     return frames
 
 
+def outline_frames(frames, outline_width):
+    outlined_frames = {}
+    for name, monster_frames in frames.items():
+        outlined_frames[name] = {}
+        for state, frames in monster_frames.items():
+            outlined_frames[name][state] = []
+            for frame in frames:
+                new_size = Vector(frame.get_size()) + Vector(outline_width * 2)
+                new_surf = pygame.Surface(new_size, pygame.SRCALPHA)
+                new_surf.fill((0, 0, 0, 0))
+                mask_surf = pygame.mask.from_surface(frame).to_surface()
+                mask_surf.set_colorkey("black")
+
+                new_surf.blit(mask_surf, (0, 0))  # TL.
+                new_surf.blit(mask_surf, (outline_width, 0))  # T.
+                new_surf.blit(mask_surf, (outline_width * 2, 0))  # TR.
+                new_surf.blit(mask_surf, (outline_width * 2, outline_width))  # R.
+                new_surf.blit(mask_surf, (outline_width * 2, outline_width * 2))  # BR.
+                new_surf.blit(mask_surf, (outline_width, outline_width * 2))  # B.
+                new_surf.blit(mask_surf, (0, outline_width * 2))  # BL.
+                new_surf.blit(mask_surf, (0, outline_width))  # L.
+
+                outlined_frames[name][state].append(new_surf)
+    return outlined_frames
+
+
 def check_connections(radius, entity, target, tolerance=30):
     relation = Vector(target.rect.center) - Vector(entity.rect.center)
     if relation.length() < radius:

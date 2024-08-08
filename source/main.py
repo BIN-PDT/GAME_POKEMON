@@ -29,18 +29,18 @@ class Game:
         self.player_monsters = {
             0: Monster("Charmadillo", 30),
             1: Monster("Friolera", 29),
-            2: Monster("Larvea", 3),
-            3: Monster("Atrox", 24),
-            4: Monster("Sparchu", 24),
-            5: Monster("Gulfin", 24),
-            6: Monster("Jacana", 2),
-            7: Monster("Pouch", 3),
+            2: Monster("Larvea", 28),
+            3: Monster("Atrox", 27),
+            4: Monster("Sparchu", 26),
+            5: Monster("Gulfin", 25),
+            6: Monster("Jacana", 24),
+            7: Monster("Pouch", 23),
         }
         self.dummy_monsters = {
-            0: Monster("Atrox", 24),
-            1: Monster("Gulfin", 13),
-            2: Monster("Jacana", 2),
-            3: Monster("Pouch", 3),
+            0: Monster("Atrox", 1),
+            1: Monster("Gulfin", 2),
+            2: Monster("Jacana", 3),
+            3: Monster("Pouch", 4),
         }
         self.index_show = False
         # GROUPS.
@@ -85,6 +85,9 @@ class Game:
             "monsters": import_monsters(4, 2, "meta", "monsters"),
             "ui": import_folder_dict("meta", "ui"),
         }
+        self.monster_frames["outlines"] = outline_frames(
+            self.monster_frames["monsters"], 4
+        )
 
         self.fonts = {
             "dialog": pygame.font.Font(join("meta", "fonts", "PixeloidSans.ttf"), 30),

@@ -16,6 +16,7 @@ from dialog import DialogTree
 from support import *
 from monster import Monster
 from monster_index import MonsterIndex
+from battle import Battle
 
 
 class Game:
@@ -34,6 +35,12 @@ class Game:
             5: Monster("Gulfin", 24),
             6: Monster("Jacana", 2),
             7: Monster("Pouch", 3),
+        }
+        self.dummy_monsters = {
+            0: Monster("Atrox", 24),
+            1: Monster("Gulfin", 13),
+            2: Monster("Jacana", 2),
+            3: Monster("Pouch", 3),
         }
         self.index_show = False
         # GROUPS.
@@ -55,6 +62,14 @@ class Game:
         self.tint_mode = "untint"
         self.tint_speed = 600
         self.tint_progress = 0
+        # BATTLE.
+        self.battle = Battle(
+            self.player_monsters,
+            self.dummy_monsters,
+            self.monster_frames,
+            self.bg_frames["forest"],
+            self.fonts,
+        )
 
     def import_assets(self):
         self.tmx_map = import_maps("data", "maps")
@@ -77,6 +92,8 @@ class Game:
             "small": pygame.font.Font(join("meta", "fonts", "PixeloidSans.ttf"), 14),
             "bold": pygame.font.Font(join("meta", "fonts", "dogicapixelbold.otf"), 20),
         }
+
+        self.bg_frames = import_folder_dict("meta", "backgrounds")
 
     def setup(self, tmx_map, player_start_pos):
         # CLEAR THE MAP.
@@ -185,7 +202,7 @@ class Game:
 
     def input(self):
         keys = pygame.key.get_just_pressed()
-        if not self.dialog_tree:
+        if not self.dialog_tree and not self.battle:
             # CHARACTER DIALOG INPUT.
             if keys[pygame.K_SPACE]:
                 for character in self.character_sprites:
@@ -266,6 +283,8 @@ class Game:
                 self.dialog_tree.update()
             if self.index_show:
                 self.monster_index.update(dt)
+            if self.battle:
+                self.battle.update(dt)
             self.tint_screen(dt)
             pygame.display.update()
 

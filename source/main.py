@@ -63,6 +63,8 @@ class Game:
         self.encounter_timer = Timer(2000, command=self.monster_encounter)
         # EVOLUTION.
         self.evolution = None
+        # SOUND.
+        self.audios["overworld"].play(-1)
 
     def import_assets(self):
         self.tmx_map = import_maps("data", "maps")
@@ -95,6 +97,8 @@ class Game:
         self.star_animation_frames = import_folder_list(
             "meta", "other", "star animation"
         )
+
+        self.audios = import_audios("audio")
 
     def setup(self, tmx_map, player_start_pos):
         # CLEAR THE MAP.
@@ -202,6 +206,7 @@ class Game:
                     collision_sprites=self.collision_sprites,
                     radius=obj.properties["radius"],
                     is_nurse=obj.properties["character_id"] == "Nurse",
+                    notice_sound=self.audios["notice"],
                 )
 
     def input(self):
@@ -242,6 +247,9 @@ class Game:
                 monster.health = monster.get_stat("max_health")
             self.player.unblock()
         elif not character.character_data["defeated"]:
+            self.audios["overworld"].stop()
+            self.audios["battle"].play(-1)
+
             self.transition_target = Battle(
                 player_monsters=self.player_monsters,
                 opponent_monsters=character.monsters,
@@ -250,6 +258,7 @@ class Game:
                 fonts=self.fonts,
                 end_battle=self.end_battle,
                 character=character,
+                sounds=self.audios,
             )
             self.tint_mode = "tint"
         else:
@@ -291,6 +300,8 @@ class Game:
         self.screen.blit(self.tint_surf, (0, 0))
 
     def end_battle(self, character):
+        self.audios["battle"].stop()
+
         self.transition_target = "level"
         self.tint_mode = "tint"
         if character:
@@ -325,6 +336,9 @@ class Game:
             sprite = sprites[0]
 
             self.player.block()
+            self.audios["overworld"].stop()
+            self.audios["battle"].play(-1)
+
             self.transition_target = Battle(
                 player_monsters=self.player_monsters,
                 opponent_monsters=sprite.monsters,
@@ -333,6 +347,7 @@ class Game:
                 fonts=self.fonts,
                 end_battle=self.end_battle,
                 character=None,
+                sounds=self.audios,
             )
             self.tint_mode = "tint"
 
@@ -342,6 +357,8 @@ class Game:
             if monster.evolution:
                 if monster.level == monster.evolution[1]:
                     self.player.block()
+                    self.audios["evolution"].play()
+
                     self.evolution = Evolution(
                         monster_frames=self.monster_frames["monsters"],
                         start_monster=monster.name,
@@ -353,8 +370,13 @@ class Game:
                     self.player_monsters[index] = Monster(
                         monster.evolution[0], monster.level
                     )
+        if not self.evolution:
+            self.audios["overworld"].play(-1)
 
     def end_evolution(self):
+        self.audios["evolution"].stop()
+        self.audios["overworld"].play(-1)
+
         self.evolution = None
         self.player.unblock()
 

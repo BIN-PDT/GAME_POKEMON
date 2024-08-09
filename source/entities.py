@@ -68,6 +68,7 @@ class Character(Entity):
         collision_sprites,
         radius,
         is_nurse,
+        notice_sound,
     ):
         super().__init__(pos, facing_direction, frames, groups)
         # CHARACTER DATA.
@@ -99,6 +100,8 @@ class Character(Entity):
             "look around": Timer(1500, True, True, self.random_view_direction),
             "notice": Timer(500, command=self.start_move),
         }
+        # SOUND.
+        self.notice_sound = notice_sound
 
     def get_dialog(self):
         return self.character_data["dialog"][
@@ -119,6 +122,7 @@ class Character(Entity):
                 self.has_noticed = True
                 # PLAYER WAS NOTICED.
                 self.player.is_noticed = True
+                self.notice_sound.play()
 
     def has_los(self):
         src_pos, des_pos = self.rect.center, self.player.rect.center

@@ -186,3 +186,12 @@ def draw_bar(surface, frame, current, maximum, fg_color, bg_color, radius=1):
     # DISPLAY.
     pygame.draw.rect(surface, bg_color, bg_rect, 0, radius)
     pygame.draw.rect(surface, fg_color, fg_rect, 0, radius)
+
+
+def import_audios(*path):
+    files = {}
+    for folder_path, _, file_names in walk(join(*path)):
+        for file_name in file_names:
+            full_path = join(folder_path, file_name)
+            files[file_name.split(".")[0]] = pygame.mixer.Sound(full_path)
+    return files

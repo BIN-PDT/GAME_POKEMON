@@ -25,6 +25,7 @@ class Battle:
         fonts,
         end_battle,
         character,
+        sounds,
     ):
         # GENERAL.
         self.battle_end = False
@@ -53,6 +54,8 @@ class Battle:
             "switch": 0,
             "target": 0,
         }
+        # SOUND.
+        self.sounds = sounds
 
         self.setup()
 
@@ -255,6 +258,7 @@ class Battle:
             frames=self.monster_frames["attacks"][ATTACK_DATA[attack]["animation"]],
             groups=self.battle_sprites,
         )
+        self.sounds[ATTACK_DATA[attack]["animation"]].play()
         # CALCULATE DAMAGE.
         attack_element = ATTACK_DATA[attack]["element"]
         target_element = target.monster.element

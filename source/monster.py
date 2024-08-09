@@ -1,5 +1,4 @@
 from game_data import MONSTER_DATA, ATTACK_DATA
-from random import randint
 
 
 class Monster:
@@ -13,8 +12,9 @@ class Monster:
         self.energy = self.base_stats["max_energy"] * self.level
         self.initiative = 0
         self.is_paused = False
+        self.is_defending = False
         # EXPERIENCE.
-        self.xp = randint(0, 1000)
+        self.xp = 0
         self.level_up = self.level * 150
 
     def get_stat(self, stat):
@@ -47,10 +47,28 @@ class Monster:
     def get_info(self):
         return (
             (self.health, self.get_stat("max_health")),
-            (self.energy, self.get_stat("max_health")),
+            (self.energy, self.get_stat("max_energy")),
             (self.initiative, 100),
         )
 
+    def reduce_energy(self, attack):
+        self.energy -= ATTACK_DATA[attack]["cost"]
+
+    def get_base_damage(self, attack):
+        return self.get_stat("attack") * ATTACK_DATA[attack]["amount"]
+
+    def update_xp(self, amount):
+        self.xp += amount
+        if self.xp >= self.level_up:
+            self.level += 1
+            self.xp -= self.level_up
+            self.level_up = self.level * 150
+
+    def limit_stats(self):
+        self.health = max(0, min(self.health, self.get_stat("max_health")))
+        self.energy = max(0, min(self.energy, self.get_stat("max_energy")))
+
     def update(self, dt):
+        self.limit_stats()
         if not self.is_paused:
             self.initiative += self.get_stat("speed") * dt

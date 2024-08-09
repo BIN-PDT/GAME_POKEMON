@@ -29,18 +29,15 @@ class Game:
         self.player_monsters = {
             0: Monster("Charmadillo", 30),
             1: Monster("Friolera", 29),
-            2: Monster("Larvea", 28),
+            2: Monster("Larvea", 1),
             3: Monster("Atrox", 27),
             4: Monster("Sparchu", 26),
-            5: Monster("Gulfin", 25),
-            6: Monster("Jacana", 24),
-            7: Monster("Pouch", 23),
         }
         self.dummy_monsters = {
-            0: Monster("Atrox", 1),
-            1: Monster("Gulfin", 2),
-            2: Monster("Jacana", 3),
-            3: Monster("Pouch", 4),
+            0: Monster("Atrox", 10),
+            1: Monster("Gulfin", 10),
+            2: Monster("Jacana", 10),
+            3: Monster("Pouch", 10),
         }
         self.index_show = False
         # GROUPS.
@@ -84,6 +81,7 @@ class Game:
             "icons": import_folder_dict("meta", "icons"),
             "monsters": import_monsters(4, 2, "meta", "monsters"),
             "ui": import_folder_dict("meta", "ui"),
+            "attacks": import_attacks("meta", "attacks"),
         }
         self.monster_frames["outlines"] = outline_frames(
             self.monster_frames["monsters"], 4

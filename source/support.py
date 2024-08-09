@@ -118,6 +118,15 @@ def import_monsters(cols, rows, *path):
     return frames
 
 
+def import_attacks(*path):
+    frames = {}
+    for folder_path, _, file_names in walk(join(*path)):
+        for file_name in file_names:
+            name = file_name.split(".")[0]
+            frames[name] = list(import_tiles(4, 1, folder_path, name).values())
+    return frames
+
+
 def outline_frames(frames, outline_width):
     outlined_frames = {}
     for name, monster_frames in frames.items():

@@ -63,7 +63,18 @@ class TransitionSprite(Sprite):
 
 # BATTLE SPRITES.
 class MonsterSprite(pygame.sprite.Sprite):
-    def __init__(self, pos, frames, groups, monster, index, pos_index, entity):
+    def __init__(
+        self,
+        pos,
+        frames,
+        groups,
+        monster,
+        index,
+        pos_index,
+        entity,
+        apply_attack,
+        create_monster,
+    ):
         self.z = BATTLE_LAYERS["monster"]
         # DATA.
         self.index = index
@@ -79,9 +90,15 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.image = self.frames[self.state][self.frame_index]
         self.rect = self.image.get_frect(center=pos)
         self.is_highlighted = False
+        # ATTACK.
+        self.target_sprite = None
+        self.current_attack = None
+        self.apply_attack = apply_attack
+        self.create_monster = create_monster
         # TIMERS.
         self.timers = {
-            "remove highlight": Timer(250, command=lambda: self.set_highlight(False))
+            "remove highlight": Timer(250, command=lambda: self.set_highlight(False)),
+            "kill": Timer(600, command=self.destroy),
         }
 
     def animate(self, dt):
@@ -89,6 +106,14 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.frame_index += self.animation_speed * dt
         if self.frame_index > len(frames):
             self.frame_index = 0
+            # APPLY ATTACK.
+            if self.state == "attack":
+                self.apply_attack(
+                    target=self.target_sprite,
+                    attack=self.current_attack,
+                    amount=self.monster.get_base_damage(self.current_attack),
+                )
+                self.state = "idle"
 
         self.image = frames[int(self.frame_index)]
 
@@ -102,6 +127,24 @@ class MonsterSprite(pygame.sprite.Sprite):
         if value:
             self.timers["remove highlight"].activate()
 
+    def activate_attack(self, target, attack):
+        self.state = "attack"
+        self.frame_index = 0
+
+        self.target_sprite = target
+        self.current_attack = attack
+        self.monster.reduce_energy(attack)
+
+    def delay_kill(self, monster_data):
+        if not self.timers["kill"].is_active:
+            self.next_monster_data = monster_data
+            self.timers["kill"].activate()
+
+    def destroy(self):
+        if self.next_monster_data:
+            self.create_monster(*self.next_monster_data)
+        self.kill()
+
     def update(self, dt):
         for timer in self.timers.values():
             timer.update()
@@ -110,23 +153,31 @@ class MonsterSprite(pygame.sprite.Sprite):
 
 
 class MonsterOutlineSprite(pygame.sprite.Sprite):
-    def __init__(self, frames, groups, monster):
+    def __init__(self, frames, groups, monster_sprite):
         self.z = BATTLE_LAYERS["outline"]
         super().__init__(groups)
-        self.monster = monster
+        self.monster_sprite = monster_sprite
         self.frames = frames
 
-        self.image = self.frames[self.monster.state][int(self.monster.frame_index)]
-        self.rect = self.image.get_frect(center=self.monster.rect.center)
+        self.image = self.frames[self.monster_sprite.state][
+            int(self.monster_sprite.frame_index)
+        ]
+        self.rect = self.image.get_frect(center=self.monster_sprite.rect.center)
 
     def update(self, _):
-        self.image = self.frames[self.monster.state][int(self.monster.frame_index)]
+        self.image = self.frames[self.monster_sprite.state][
+            int(self.monster_sprite.frame_index)
+        ]
+        # CHECK DEATH.
+        if not self.monster_sprite.groups():
+            self.kill()
 
 
 class MonsterNameSprite(pygame.sprite.Sprite):
     def __init__(self, pos, groups, monster_sprite, font):
         self.z = BATTLE_LAYERS["name"]
         super().__init__(groups)
+        self.monster_sprite = monster_sprite
         text_surf = font.render(monster_sprite.monster.name, False, COLORS["black"])
         padding = 10
 
@@ -136,6 +187,11 @@ class MonsterNameSprite(pygame.sprite.Sprite):
         self.image.fill(COLORS["white"])
         self.image.blit(text_surf, (padding, padding))
         self.rect = self.image.get_frect(midtop=pos)
+
+    def update(self, _):
+        # CHECK DEATH.
+        if not self.monster_sprite.groups():
+            self.kill()
 
 
 class MonsterLevelSprite(pygame.sprite.Sprite):
@@ -174,6 +230,9 @@ class MonsterLevelSprite(pygame.sprite.Sprite):
             COLORS["white"],
             0,
         )
+        # CHECK DEATH.
+        if not self.monster_sprite.groups():
+            self.kill()
 
 
 class MonsterStatsSprite(pygame.sprite.Sprite):
@@ -198,7 +257,7 @@ class MonsterStatsSprite(pygame.sprite.Sprite):
             if index < 2:
                 # STAT.
                 text_surf = self.font.render(
-                    f"{current}/{maximum}", False, COLORS["black"]
+                    f"{current:.0f}/{maximum:.0f}", False, COLORS["black"]
                 )
                 pos = 0.05 * self.rect.width, index * self.rect.height / 2 + (
                     5 if index == 0 else 0
@@ -217,3 +276,29 @@ class MonsterStatsSprite(pygame.sprite.Sprite):
                 draw_bar(
                     self.image, bar_rect, current, maximum, color, COLORS["white"], 0
                 )
+        # CHECK DEATH.
+        if not self.monster_sprite.groups():
+            self.kill()
+
+
+class AttackSprite(AnimatedSprite):
+    def __init__(self, pos, frames, groups):
+        super().__init__(pos, frames, groups, BATTLE_LAYERS["overlay"])
+        self.rect.center = pos
+
+    def animte(self, dt):
+        self.frame_index += ANIMATION_SPEED * dt
+        if self.frame_index <= len(self.frames):
+            self.image = self.frames[int(self.frame_index)]
+        else:
+            self.kill()
+
+
+class TimedSprite(Sprite):
+    def __init__(self, pos, surf, groups, duration):
+        super().__init__(pos, surf, groups, BATTLE_LAYERS["overlay"])
+        self.rect.center = pos
+        self.death_timer = Timer(duration, autostart=True, command=self.kill)
+
+    def update(self, _):
+        self.death_timer.update()

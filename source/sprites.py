@@ -1,7 +1,8 @@
 from settings import *
-from random import uniform
+from random import uniform, randint
 from support import draw_bar
 from timers import Timer
+from monster import Monster
 
 
 # OVERWOLRD SPRITES.
@@ -47,8 +48,12 @@ class ColliableSprite(Sprite):
 
 
 class MonsterPatchSprite(Sprite):
-    def __init__(self, pos, surf, groups, biome):
+    def __init__(self, pos, surf, groups, biome, level, monsters):
         self.biome = biome
+        self.monsters = {
+            i: Monster(name, level + randint(-3, 3))
+            for i, name in enumerate(monsters.split(","))
+        }
         z = WORLD_LAYERS["main" if self.biome != "sand" else "bg"]
         super().__init__(pos, surf, groups, z)
         self.y_sort -= 40

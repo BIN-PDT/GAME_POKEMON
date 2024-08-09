@@ -3,6 +3,7 @@ from random import choice
 from settings import *
 from support import check_connections
 from timers import Timer
+from monster import Monster
 
 
 class Entity(pygame.sprite.Sprite):
@@ -66,11 +67,21 @@ class Character(Entity):
         create_dialog,
         collision_sprites,
         radius,
+        is_nurse,
     ):
         super().__init__(pos, facing_direction, frames, groups)
         # CHARACTER DATA.
         self.character_data = character_data
         self.player = player
+        self.is_nurse = is_nurse
+        self.monsters = (
+            {
+                i: Monster(name, level)
+                for i, (name, level) in self.character_data["monsters"].items()
+            }
+            if self.character_data.get("monsters")
+            else None
+        )
         # DIALOG.
         self.create_dialog = create_dialog
         self.collision_rects = [

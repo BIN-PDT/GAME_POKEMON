@@ -17,10 +17,19 @@ from random import choice
 
 class Battle:
     def __init__(
-        self, player_monsters, opponent_monsters, monster_frames, bg_surf, fonts
+        self,
+        player_monsters,
+        opponent_monsters,
+        monster_frames,
+        bg_surf,
+        fonts,
+        end_battle,
+        character,
     ):
         # GENERAL.
         self.battle_end = False
+        self.end_battle = end_battle
+        self.character = character
         self.screen = pygame.display.get_surface()
         self.monster_frames = monster_frames
         self.bg_surf = bg_surf
@@ -57,6 +66,7 @@ class Battle:
             del self.monster_data["opponent"][index]
 
     def create_monster(self, monster, index, pos_index, entity):
+        monster.is_paused = False
         frames = self.monster_frames["monsters"][monster.name]
         outlined_frames = self.monster_frames["outlines"][monster.name]
 
@@ -336,6 +346,7 @@ class Battle:
         # OPPONENT DEFEATED.
         if not self.battle_end and len(self.opponent_sprites) == 0:
             self.battle_end = True
+            self.end_battle(self.character)
         # PLAYER DEFEATED.
         if len(self.player_sprites) == 0:
             pygame.quit()

@@ -61,9 +61,14 @@ class Battle:
 
     def setup(self):
         for entity, monsters in self.monster_data.items():
-            belligerents = {i: monster for i, monster in monsters.items() if i <= 2}
-            for index, monster in belligerents.items():
-                self.create_monster(monster, index, index, entity)
+            pos_index = 0
+            for index, monster in monsters.items():
+                if pos_index < 3:
+                    if monster.health > 0:
+                        self.create_monster(monster, index, pos_index, entity)
+                        pos_index += 1
+                else:
+                    break
         # REMOVE OPPONENT MONSTERS DATA.
         for index in range(len(self.opponent_sprites)):
             del self.monster_data["opponent"][index]
@@ -151,15 +156,19 @@ class Battle:
             if keys[pygame.K_SPACE]:
                 # SWITCH MODE.
                 if self.selection_mode == "switch":
-                    index, monster = list(self.available_monsters.items())[
-                        self.indexes["switch"]
-                    ]
-                    self.current_monster.kill()
-                    self.create_monster(
-                        monster, index, self.current_monster.pos_index, "player"
-                    )
-                    self.selection_mode = None
-                    self.update_all_monsters("resume")
+                    if limiter > 0:
+                        index, monster = list(self.available_monsters.items())[
+                            self.indexes["switch"]
+                        ]
+                        self.current_monster.kill()
+                        self.create_monster(
+                            monster, index, self.current_monster.pos_index, "player"
+                        )
+                        self.selection_mode = None
+                        self.update_all_monsters("resume")
+                    else:
+                        self.selection_mode = "general"
+                        self.indexes["general"] = -1
                 # TARGET MODE.
                 if self.selection_mode == "target":
                     # TARGET.

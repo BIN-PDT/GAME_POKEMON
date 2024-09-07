@@ -79,6 +79,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         entity,
         apply_attack,
         create_monster,
+        update_all_monsters,
     ):
         self.z = BATTLE_LAYERS["monster"]
         # DATA.
@@ -100,6 +101,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         self.current_attack = None
         self.apply_attack = apply_attack
         self.create_monster = create_monster
+        self.update_all_monsters = update_all_monsters
         # TIMERS.
         self.timers = {
             "remove highlight": Timer(250, command=lambda: self.set_highlight(False)),
@@ -149,6 +151,7 @@ class MonsterSprite(pygame.sprite.Sprite):
         if self.next_monster_data:
             self.create_monster(*self.next_monster_data)
         self.kill()
+        self.update_all_monsters("resume")
 
     def update(self, dt):
         for timer in self.timers.values():

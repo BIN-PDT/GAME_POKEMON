@@ -99,6 +99,7 @@ class Battle:
             entity=entity,
             apply_attack=self.apply_attack,
             create_monster=self.create_monster,
+            update_all_monsters=self.update_all_monsters,
         )
         MonsterOutlineSprite(outlined_frames, self.battle_sprites, sprite)
         # UI.
@@ -288,13 +289,16 @@ class Battle:
         target_defense = max(0, min(1, target_defense))
         # UPDATE HEALTH.
         target.monster.health -= amount * target_defense
-        self.check_death()
         # RESUME THE BATTLE.
         self.update_all_monsters("resume")
+        # CHECK DEATH.
+        self.check_death()
 
     def check_death(self):
         for sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
             if sprite.monster.health <= 0:
+                # STOP THE BATTLE FOR REPLACING.
+                self.update_all_monsters("pause")
                 # PLAYER SIDE.
                 if self.player_sprites in sprite.groups():
                     active_monsters = [

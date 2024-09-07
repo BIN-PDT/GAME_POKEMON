@@ -196,7 +196,8 @@ class Battle:
                                 len(self.monster_data["player"])
                             ] = target.monster
                             target.delay_kill(None)
-                            self.update_all_monsters("resume")
+                            self.selection_mode = None
+                            self.current_monster = None
                         else:
                             TimedSprite(
                                 pos=target.rect.center,
@@ -204,6 +205,8 @@ class Battle:
                                 groups=self.battle_sprites,
                                 duration=1000,
                             )
+                            self.selection_mode = "general"
+                            self.indexes["general"] = -1
                 # ATTACK MODE.
                 if self.selection_mode == "attacks":
                     self.selection_mode = "target"

@@ -167,7 +167,7 @@ class MonsterIndex:
             bg_color=COLORS["black"],
             radius=2,
         )
-        hp_text = f"HP: {monster.health}/{monster.get_stat('max_health')}"
+        hp_text = f"HP: {monster.health:.0f}/{monster.get_stat('max_health')}"
         hp_surf = self.fonts["regular"].render(hp_text, False, COLORS["white"])
         hp_rect = hp_surf.get_frect(midleft=healthbar_rect.midleft + Vector(10, 0))
         self.screen.blit(hp_surf, hp_rect)
@@ -184,7 +184,7 @@ class MonsterIndex:
             bg_color=COLORS["black"],
             radius=2,
         )
-        ep_text = f"EP: {monster.energy}/{monster.get_stat('max_energy')}"
+        ep_text = f"EP: {monster.energy:.0f}/{monster.get_stat('max_energy')}"
         ep_surf = self.fonts["regular"].render(ep_text, False, COLORS["white"])
         ep_rect = ep_surf.get_frect(midleft=energybar_rect.midleft + Vector(10, 0))
         self.screen.blit(ep_surf, ep_rect)

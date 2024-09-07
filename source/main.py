@@ -81,9 +81,10 @@ class Game:
             "ui": import_folder_dict("meta", "ui"),
             "attacks": import_attacks("meta", "attacks"),
         }
-        self.monster_frames["outlines"] = outline_frames(
-            self.monster_frames["monsters"], 4
-        )
+        self.monster_frames["outlines"] = {
+            "player": outline_frames(self.monster_frames["monsters"], 4, "player"),
+            "opponent": outline_frames(self.monster_frames["monsters"], 4, "opponent"),
+        }
 
         self.fonts = {
             "dialog": pygame.font.Font(join("meta", "fonts", "PixeloidSans.ttf"), 30),

@@ -127,7 +127,7 @@ def import_attacks(*path):
     return frames
 
 
-def outline_frames(frames, outline_width):
+def outline_frames(frames, outline_width, entity):
     outlined_frames = {}
     for name, monster_frames in frames.items():
         outlined_frames[name] = {}
@@ -137,7 +137,9 @@ def outline_frames(frames, outline_width):
                 new_size = Vector(frame.get_size()) + Vector(outline_width * 2)
                 new_surf = pygame.Surface(new_size, pygame.SRCALPHA)
                 new_surf.fill((0, 0, 0, 0))
-                mask_surf = pygame.mask.from_surface(frame).to_surface()
+                mask_surf = pygame.mask.from_surface(frame).to_surface(
+                    setcolor="green" if entity == "player" else "red"
+                )
                 mask_surf.set_colorkey("black")
 
                 new_surf.blit(mask_surf, (0, 0))  # TL.

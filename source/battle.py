@@ -71,7 +71,7 @@ class Battle:
     def create_monster(self, monster, index, pos_index, entity):
         monster.is_paused = False
         frames = self.monster_frames["monsters"][monster.name]
-        outlined_frames = self.monster_frames["outlines"][monster.name]
+        outlined_frames = self.monster_frames["outlines"][entity][monster.name]
 
         if entity == "player":
             pos = list(BATTLE_POSITIONS["left"].values())[pos_index]

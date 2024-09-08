@@ -61,8 +61,10 @@ class Game:
         self.battle = None
         # TIMERS.
         self.encounter_timer = Timer(2000, command=self.monster_encounter)
+        self.evolution_timer = Timer(1000, command=self.evolute_monster)
         # EVOLUTION.
         self.evolution = None
+        self.evoluting_monsters = []
         # SOUND.
         self.audios["overworld"].play(-1)
 
@@ -357,30 +359,40 @@ class Game:
     def check_evolution(self):
         for index, monster in self.player_monsters.items():
             if monster.evolution:
-                if monster.level == monster.evolution[1]:
+                if monster.level >= monster.evolution[1]:
                     self.player.block()
 
-                    self.evolution = Evolution(
-                        monster_frames=self.monster_frames["monsters"],
-                        start_monster=monster.name,
-                        end_monster=monster.evolution[0],
-                        font=self.fonts["bold"],
-                        end_evolution=self.end_evolution,
-                        star_frames=self.star_animation_frames,
+                    self.evoluting_monsters.append(
+                        Evolution(
+                            monster_frames=self.monster_frames["monsters"],
+                            start_monster=monster.name,
+                            end_monster=monster.evolution[0],
+                            font=self.fonts["bold"],
+                            end_evolution=self.end_evolution,
+                            star_frames=self.star_animation_frames,
+                        )
                     )
                     self.player_monsters[index] = Monster(
                         monster.evolution[0], monster.level
                     )
-        if self.evolution:
+        # EVOLUTING.
+        if self.evoluting_monsters:
             self.audios["overworld"].stop()
-            self.audios["evolution"].play()
+            self.audios["evolution"].play(-1)
+            self.evolute_monster()
 
     def end_evolution(self):
-        self.audios["evolution"].stop()
-        self.audios["overworld"].play(-1)
+        if self.evoluting_monsters:
+            self.evolution_timer.activate()
+        else:
+            self.audios["evolution"].stop()
+            self.audios["overworld"].play(-1)
 
-        self.evolution = None
-        self.player.unblock()
+            self.evolution = None
+            self.player.unblock()
+
+    def evolute_monster(self):
+        self.evolution = self.evoluting_monsters.pop(0)
 
     # MAINLOOP.
     def run(self):
@@ -393,6 +405,7 @@ class Game:
                     exit()
             # GAME LOGIC.
             self.encounter_timer.update()
+            self.evolution_timer.update()
             self.input()
             self.transition_check()
             self.screen.fill("black")

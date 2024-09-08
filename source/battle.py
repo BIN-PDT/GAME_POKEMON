@@ -107,6 +107,9 @@ class Battle:
             update_all_monsters=self.update_all_monsters,
         )
         MonsterOutlineSprite(outlined_frames, self.battle_sprites, sprite)
+        # REARRANGE MONSTER GROUP.
+        group = self.player_sprites if entity == "player" else self.opponent_sprites
+        self.rearrange_monster_group(group)
         # UI.
         name_pos = (
             sprite.rect.midleft + Vector(10, -40)
@@ -545,3 +548,12 @@ class Battle:
             opponent_sprites=self.opponent_sprites,
         )
         self.draw_ui()
+
+    # SUPPORT.
+    @staticmethod
+    def rearrange_monster_group(group):
+        # SORT & STORE OLD DATA.
+        sprites = sorted(group.sprites(), key=lambda sprite: sprite.pos_index)
+        # EMPTY & ADD NEW DATA.
+        group.empty()
+        group.add(sprites)

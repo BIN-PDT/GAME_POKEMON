@@ -75,6 +75,7 @@ class Game:
             "water": import_folder_list("meta", "tilesets", "water"),
             "coast": import_coast(24, 12, "meta", "tilesets", "coast"),
             "characters": import_characters("meta", "characters"),
+            "patch_death": import_image("meta", "ui", "patch_death"),
         }
 
         self.monster_frames = {
@@ -339,21 +340,23 @@ class Game:
             self.encounter_timer.duration = randint(800, 2500)
             sprite = sprites[0]
 
-            self.player.block()
-            self.audios["overworld"].stop()
-            self.audios["battle"].play(-1)
+            if sprite.monsters:
+                sprite.image = self.overworld_frames["patch_death"]
+                self.player.block()
+                self.audios["overworld"].stop()
+                self.audios["battle"].play(-1)
 
-            self.transition_target = Battle(
-                player_monsters=self.player_monsters,
-                opponent_monsters=sprite.monsters,
-                monster_frames=self.monster_frames,
-                bg_surf=self.bg_frames[sprite.biome],
-                fonts=self.fonts,
-                end_battle=self.end_battle,
-                character=None,
-                sounds=self.audios,
-            )
-            self.tint_mode = "tint"
+                self.transition_target = Battle(
+                    player_monsters=self.player_monsters,
+                    opponent_monsters=sprite.monsters,
+                    monster_frames=self.monster_frames,
+                    bg_surf=self.bg_frames[sprite.biome],
+                    fonts=self.fonts,
+                    end_battle=self.end_battle,
+                    character=None,
+                    sounds=self.audios,
+                )
+                self.tint_mode = "tint"
 
     # MONSTER EVOLUTION.
     def check_evolution(self):

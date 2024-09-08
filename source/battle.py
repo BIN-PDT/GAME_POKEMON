@@ -43,6 +43,7 @@ class Battle:
         self.player_sprites = pygame.sprite.Group()
         self.opponent_sprites = pygame.sprite.Group()
         # CONTROL.
+        self.OPPONENT_CHOICES = ("attack",) * 4 + ("defense",) * 2
         self.current_monster = None
         self.selection_mode = None
         self.selection_side = "player"
@@ -167,6 +168,7 @@ class Battle:
                         self.create_monster(
                             monster, index, self.current_monster.pos_index, "player"
                         )
+                        # END PLAYER TURN.
                         self.selection_mode = None
                         self.update_all_monsters("resume")
                     else:
@@ -174,7 +176,6 @@ class Battle:
                         self.indexes["general"] = -1
                 # TARGET MODE.
                 if self.selection_mode == "target":
-                    # TARGET.
                     group = (
                         self.opponent_sprites
                         if self.selection_side == "opponent"
@@ -187,9 +188,10 @@ class Battle:
                         self.current_monster.activate_attack(
                             target, self.selected_attack
                         )
-                        self.current_monster = None
+                        # END PLAYER TURN.
                         self.selection_mode = None
                         self.selected_attack = None
+                        self.current_monster = None
                     # CATCH.
                     else:
                         if target.monster.health < 0.9 * target.monster.get_stat(
@@ -199,6 +201,7 @@ class Battle:
                                 len(self.monster_data["player"])
                             ] = target.monster
                             target.delay_kill(None)
+                            # END PLAYER TURN.
                             self.selection_mode = None
                             self.current_monster = None
                         else:
@@ -212,11 +215,20 @@ class Battle:
                             self.indexes["general"] = -1
                 # ATTACK MODE.
                 if self.selection_mode == "attacks":
-                    self.selection_mode = "target"
-                    self.selected_attack = self.current_monster.monster.get_abilities(
+                    available_attacks = self.current_monster.monster.get_abilities(
                         all=False
-                    )[self.indexes["attacks"]]
-                    self.selection_side = ATTACK_DATA[self.selected_attack]["target"]
+                    )
+                    if available_attacks:
+                        self.selection_mode = "target"
+                        self.selected_attack = available_attacks[
+                            self.indexes["attacks"]
+                        ]
+                        self.selection_side = ATTACK_DATA[self.selected_attack][
+                            "target"
+                        ]
+                    else:
+                        self.selection_mode = "general"
+                        self.indexes["general"] = -1
                 # GENERAL MODE.
                 if self.selection_mode == "general":
                     # ATTACK.
@@ -225,10 +237,11 @@ class Battle:
                     # DEFENSE.
                     if self.indexes["general"] == 1:
                         self.current_monster.monster.is_defending = True
-                        self.update_all_monsters("resume")
+                        self.current_monster.monster.get_recovery()
+                        # END PLAYER TURN.
                         self.current_monster = None
                         self.selection_mode = None
-                        self.indexes["general"] = 0
+                        self.update_all_monsters("resume")
                     # SWITCH.
                     if self.indexes["general"] == 2:
                         self.selection_mode = "switch"
@@ -249,6 +262,11 @@ class Battle:
 
     # BATTLE SYSTEM.
     def check_active(self):
+        # A MONSTER IS IN TURN.
+        if self.current_monster:
+            self.update_all_monsters("pause")
+            return
+        # CHECK TURN OF MONSTER.
         for sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
             if sprite.monster.initiative >= 100:
                 sprite.monster.is_defending = False
@@ -262,6 +280,7 @@ class Battle:
                 # OPPONENT SIDE.
                 else:
                     self.timers["opponent delay"].activate()
+                break
 
     def update_all_monsters(self, option):
         for sprite in self.player_sprites.sprites() + self.opponent_sprites.sprites():
@@ -297,13 +316,15 @@ class Battle:
             and target_element == "fire"
         ):
             amount /= 2
-
-        target_defense = 1 - target.monster.get_stat("defense") / 2000
-        if target.monster.is_defending:
-            target_defense -= 0.2
-        target_defense = max(0, min(1, target_defense))
+        # CALCULATE DAMGE AFTER DEFENDING.
+        if amount >= 0:
+            target_defense = 1 - target.monster.get_stat("defense") / 2000
+            if target.monster.is_defending:
+                target_defense -= 0.2
+            target_defense = max(0, min(1, target_defense))
+            amount *= target_defense
         # UPDATE HEALTH.
-        target.monster.health -= amount * target_defense
+        target.monster.health -= amount
         # RESUME THE BATTLE.
         self.update_all_monsters("resume")
         # CHECK DEATH.
@@ -357,13 +378,28 @@ class Battle:
                 sprite.delay_kill(new_monster_data)
 
     def opponent_attack(self):
-        ability = choice(self.current_monster.monster.get_abilities(all=False))
-        target = choice(
-            self.opponent_sprites.sprites()
-            if ATTACK_DATA[ability]["target"] == "player"
-            else self.player_sprites.sprites()
-        )
-        self.current_monster.activate_attack(target, ability)
+        # CHOOSE.
+        decision = choice(self.OPPONENT_CHOICES)
+        if decision == "defense" and self.current_monster.monster.is_energetic():
+            decision = "attack"
+        # ATTACK.
+        available_attacks = self.current_monster.monster.get_abilities(all=False)
+        if decision == "attack" and available_attacks:
+            ability = choice(available_attacks)
+            target = choice(
+                self.opponent_sprites.sprites()
+                if ATTACK_DATA[ability]["target"] == "player"
+                else self.player_sprites.sprites()
+            )
+            self.current_monster.activate_attack(target, ability)
+        # DEFENSE.
+        if decision == "defense" or not available_attacks:
+            self.current_monster.monster.is_defending = True
+            self.current_monster.monster.get_recovery()
+            # RESUME THE BATTLE.
+            self.update_all_monsters("resume")
+        # END OPPONENT TURN.
+        self.current_monster = None
 
     def check_end_battle(self):
         # OPPONENT DEFEATED.

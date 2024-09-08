@@ -69,6 +69,17 @@ class Monster:
         self.health = max(0, min(self.health, self.get_stat("max_health")))
         self.energy = max(0, min(self.energy, self.get_stat("max_energy")))
 
+    def get_recovery(self):
+        recovery_amount = self.get_stat("recovery")
+        self.health += recovery_amount * 0.25
+        self.energy += recovery_amount * 0.75
+
+    def is_energetic(self):
+        return (
+            self.health >= self.get_stat("max_health") * 0.5
+            and self.energy >= self.get_stat("max_energy") * 0.8
+        )
+
     def update(self, dt):
         self.limit_stats()
         if not self.is_paused:

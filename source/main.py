@@ -302,6 +302,7 @@ class Game:
 
     def end_battle(self, character):
         self.audios["battle"].stop()
+        self.audios["overworld"].play(-1)
 
         self.transition_target = "level"
         self.tint_mode = "tint"
@@ -358,7 +359,6 @@ class Game:
             if monster.evolution:
                 if monster.level == monster.evolution[1]:
                     self.player.block()
-                    self.audios["evolution"].play()
 
                     self.evolution = Evolution(
                         monster_frames=self.monster_frames["monsters"],
@@ -371,8 +371,9 @@ class Game:
                     self.player_monsters[index] = Monster(
                         monster.evolution[0], monster.level
                     )
-        if not self.evolution:
-            self.audios["overworld"].play(-1)
+        if self.evolution:
+            self.audios["overworld"].stop()
+            self.audios["evolution"].play()
 
     def end_evolution(self):
         self.audios["evolution"].stop()
@@ -381,6 +382,7 @@ class Game:
         self.evolution = None
         self.player.unblock()
 
+    # MAINLOOP.
     def run(self):
         while True:
             dt = self.clock.tick() / 1000

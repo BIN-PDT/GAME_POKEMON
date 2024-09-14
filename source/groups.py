@@ -1,7 +1,7 @@
-from entities import Entity
-
 from settings import *
-from support import import_image
+from supports import import_image
+
+from entities import Entity
 
 
 class AllSprites(pygame.sprite.Group):

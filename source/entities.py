@@ -1,8 +1,8 @@
 from random import choice
-
 from settings import *
-from support import check_connections
+from supports import check_connections
 from timers import Timer
+
 from monster import Monster
 
 

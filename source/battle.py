@@ -1,5 +1,9 @@
+from random import choice
 from settings import *
 from game_data import ATTACK_DATA
+from supports import draw_bar
+from timers import Timer
+
 from sprites import (
     MonsterSprite,
     MonsterOutlineSprite,
@@ -10,9 +14,6 @@ from sprites import (
     TimedSprite,
 )
 from groups import BattleSprites
-from support import draw_bar
-from timers import Timer
-from random import choice
 
 
 class Battle:

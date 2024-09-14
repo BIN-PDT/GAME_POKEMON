@@ -61,17 +61,13 @@ def import_folder_list(*path):
     return frames
 
 
-def import_folder_dict(*path, subordinate=False):
+def import_folder_dict(*path):
     frames = {}
-    for folder_path, sub_folders, file_names in walk(join(*path)):
-        if subordinate:
-            for sub_folder in sub_folders:
-                frames[sub_folder] = import_folder_list()
-        else:
-            for file_name in file_names:
-                full_path = join(folder_path, file_name)
-                surf = pygame.image.load(full_path).convert_alpha()
-                frames[file_name.split(".")[0]] = surf
+    for folder_path, _, file_names in walk(join(*path)):
+        for file_name in file_names:
+            full_path = join(folder_path, file_name)
+            surf = pygame.image.load(full_path).convert_alpha()
+            frames[file_name.split(".")[0]] = surf
     return frames
 
 

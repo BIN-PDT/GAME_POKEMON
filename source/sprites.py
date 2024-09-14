@@ -1,7 +1,8 @@
-from settings import *
 from random import uniform, randint
-from support import draw_bar
+from settings import *
+from supports import draw_bar
 from timers import Timer
+
 from monster import Monster
 
 

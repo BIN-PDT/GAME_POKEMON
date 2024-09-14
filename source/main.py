@@ -1,7 +1,9 @@
 from random import randint
+from os.path import join
 from settings import *
 from game_data import *
-from os.path import join
+from supports import *
+from timers import Timer
 
 from sprites import (
     Sprite,
@@ -14,11 +16,9 @@ from sprites import (
 from entities import Character, Player
 from groups import AllSprites
 from dialog import DialogTree
-from support import *
 from monster import Monster
 from monster_index import MonsterIndex
 from battle import Battle
-from timers import Timer
 from evolution import Evolution
 
 
@@ -44,7 +44,7 @@ class Game:
         self.transition_sprites = pygame.sprite.Group()
         self.monster_sprites = pygame.sprite.Group()
         # ASSETS.
-        self.import_assets()
+        self.load_assets()
         self.setup(self.tmx_map["world"], "house")
         # DIALOG.
         self.dialog_tree = None
@@ -68,7 +68,7 @@ class Game:
         # SOUND.
         self.audios["overworld"].play(-1)
 
-    def import_assets(self):
+    def load_assets(self):
         self.tmx_map = import_maps("data", "maps")
 
         self.overworld_frames = {

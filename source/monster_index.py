@@ -1,6 +1,6 @@
 from settings import *
-from support import draw_bar
 from game_data import MONSTER_DATA, ATTACK_DATA
+from supports import draw_bar
 
 
 class MonsterIndex:

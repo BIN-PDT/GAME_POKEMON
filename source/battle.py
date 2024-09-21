@@ -1,3 +1,4 @@
+from math import floor
 from random import choice
 from settings import *
 from game_data import ATTACK_DATA
@@ -58,7 +59,7 @@ class Battle:
         }
         # SOUND.
         self.sounds = sounds
-
+        # SETUP.
         self.setup()
 
     def setup(self):
@@ -171,6 +172,7 @@ class Battle:
                         )
                         # END PLAYER TURN.
                         self.selection_mode = None
+                        self.current_monster = None
                         self.update_all_monsters("resume")
                     else:
                         self.selection_mode = "general"
@@ -195,22 +197,34 @@ class Battle:
                         self.current_monster = None
                     # CATCH.
                     else:
-                        if target.monster.health < 0.9 * target.monster.get_stat(
-                            "max_health"
-                        ):
-                            self.monster_data["player"][
-                                len(self.monster_data["player"])
-                            ] = target.monster
-                            target.delay_kill(None)
+                        HP_RATE = floor(
+                            target.monster.health
+                            / target.monster.get_stat("max_health")
+                            * 10
+                        )
+
+                        if HP_RATE < 8:
+                            PROBABILITY = (0,) * HP_RATE + (1,) * (10 - HP_RATE)
+                            result = choice(PROBABILITY)
+
+                            if result:
+                                self.monster_data["player"][
+                                    len(self.monster_data["player"])
+                                ] = target.monster
+                                target.delay_kill(None)
+                            else:
+                                self.create_timed_sprite(
+                                    pos=self.current_monster.rect.center,
+                                    surf=self.monster_frames["ui"]["notice"],
+                                )
+                                self.update_all_monsters("resume")
                             # END PLAYER TURN.
                             self.selection_mode = None
                             self.current_monster = None
                         else:
-                            TimedSprite(
+                            self.create_timed_sprite(
                                 pos=target.rect.center,
                                 surf=self.monster_frames["ui"]["cross"],
-                                groups=self.battle_sprites,
-                                duration=1000,
                             )
                             self.selection_mode = "general"
                             self.indexes["general"] = -1
@@ -587,6 +601,9 @@ class Battle:
         self.draw_ui()
 
     # SUPPORT.
+    def create_timed_sprite(self, pos, surf):
+        TimedSprite(pos, surf, self.battle_sprites, 1000)
+
     @staticmethod
     def rearrange_monster_group(group):
         # SORT & STORE OLD DATA.

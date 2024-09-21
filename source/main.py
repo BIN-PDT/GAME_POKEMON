@@ -31,10 +31,11 @@ class Game:
         # PLAYER MONSTERS.
         self.player_monsters = {
             0: Monster("Charmadillo", 30),
-            1: Monster("Friolera", 29),
-            2: Monster("Larvea", 3),
-            3: Monster("Atrox", 27),
-            4: Monster("Sparchu", 26),
+            1: Monster("Finiette", 30),
+            2: Monster("Pluma", 30),
+            3: Monster("Friolera", 30),
+            4: Monster("Draem", 30),
+            5: Monster("Cleaf", 30),
         }
         self.index_show = False
         # GROUPS.

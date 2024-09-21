@@ -15,7 +15,7 @@ from sprites import (
 )
 from entities import Character, Player
 from groups import AllSprites
-from dialog import DialogTree
+from dialog import DialogTree, DialogSprite
 from monster import Monster
 from monster_index import MonsterIndex
 from battle import Battle
@@ -63,6 +63,7 @@ class Game:
         # TIMERS.
         self.encounter_timer = Timer(2000, command=self.monster_encounter)
         self.evolution_timer = Timer(1000, command=self.evolute_monster)
+        self.announcement_timer = Timer(1500)
         # EVOLUTION.
         self.evolution = None
         self.evoluting_monsters = []
@@ -253,6 +254,9 @@ class Game:
                 monster.health = monster.get_stat("max_health")
             self.player.unblock()
         elif not character.character_data["defeated"]:
+            if not self.check_available_monster():
+                return
+
             self.audios["overworld"].stop()
             self.audios["battle"].play(-1)
 
@@ -320,45 +324,40 @@ class Game:
 
     # MONSTER ENCOUNTERS.
     def check_monster(self):
-        if (
-            self.player.direction
-            and not self.battle
-            and [
-                sprite
-                for sprite in self.monster_sprites
-                if sprite.rect.colliderect(self.player.hitbox)
-            ]
-        ):
-            if not self.encounter_timer.is_active:
-                self.encounter_timer.activate()
+        if not self.encounter_timer.is_active:
+            for sprite in self.monster_sprites:
+                if (
+                    sprite.rect.colliderect(self.player.hitbox)
+                    and self.player.direction
+                    and not self.battle
+                ):
+                    self.encounter_timer.activate()
+                    break
 
     def monster_encounter(self):
-        sprites = [
-            sprite
-            for sprite in self.monster_sprites
-            if sprite.rect.colliderect(self.player.hitbox)
-        ]
-        if sprites and self.player.direction:
-            self.encounter_timer.duration = randint(800, 2500)
-            sprite = sprites[0]
+        for sprite in self.monster_sprites:
+            if sprite.rect.colliderect(self.player.hitbox) and self.player.direction:
+                if not self.check_available_monster():
+                    return
 
-            if sprite.monsters:
-                sprite.image = self.overworld_frames["patch_death"]
-                self.player.block()
-                self.audios["overworld"].stop()
-                self.audios["battle"].play(-1)
+                self.encounter_timer.duration = randint(800, 2500)
+                if sprite.monsters:
+                    sprite.image = self.overworld_frames["patch_death"]
+                    self.player.block()
+                    self.audios["overworld"].stop()
+                    self.audios["battle"].play(-1)
 
-                self.transition_target = Battle(
-                    player_monsters=self.player_monsters,
-                    opponent_monsters=sprite.monsters,
-                    monster_frames=self.monster_frames,
-                    bg_surf=self.bg_frames[sprite.biome],
-                    fonts=self.fonts,
-                    end_battle=self.end_battle,
-                    character=None,
-                    sounds=self.audios,
-                )
-                self.tint_mode = "tint"
+                    self.transition_target = Battle(
+                        player_monsters=self.player_monsters,
+                        opponent_monsters=sprite.monsters,
+                        monster_frames=self.monster_frames,
+                        bg_surf=self.bg_frames[sprite.biome],
+                        fonts=self.fonts,
+                        end_battle=self.end_battle,
+                        character=None,
+                        sounds=self.audios,
+                    )
+                    self.tint_mode = "tint"
 
     # MONSTER EVOLUTION.
     def check_evolution(self):
@@ -399,6 +398,27 @@ class Game:
     def evolute_monster(self):
         self.evolution = self.evoluting_monsters.pop(0)
 
+    # ANNOUNCEMENT.
+    def end_announcement(self, announcement):
+        announcement.kill()
+        self.player.unblock()
+
+    def check_available_monster(self):
+        for monster in self.player_monsters.values():
+            if monster.health > 0:
+                return True
+        # ANNOUNCE.
+        self.player.block()
+        announcement = DialogSprite(
+            message="Monsters need treatment!",
+            character=self.player,
+            groups=self.all_sprites,
+            font=self.fonts["dialog"],
+        )
+        self.announcement_timer.command = lambda: self.end_announcement(announcement)
+        self.announcement_timer.activate()
+        return False
+
     # MAINLOOP.
     def run(self):
         while True:
@@ -411,12 +431,13 @@ class Game:
             # GAME LOGIC.
             self.encounter_timer.update()
             self.evolution_timer.update()
+            self.announcement_timer.update()
             self.input()
             self.transition_check()
-            self.screen.fill("black")
             self.all_sprites.update(dt)
             self.check_monster()
 
+            self.screen.fill("black")
             self.all_sprites.draw(self.player)
             # OVERLAYS.
             if self.dialog_tree:

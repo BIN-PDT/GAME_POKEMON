@@ -112,6 +112,7 @@ class Game:
             self.collision_sprites,
             self.character_sprites,
             self.transition_sprites,
+            self.monster_sprites,
         ):
             group.empty()
         # TERRAINS.

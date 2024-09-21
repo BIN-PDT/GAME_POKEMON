@@ -1,5 +1,5 @@
 from math import floor
-from random import choice
+from random import choice, uniform
 from settings import *
 from game_data import ATTACK_DATA
 from supports import draw_bar
@@ -417,14 +417,14 @@ class Battle:
         self.current_monster = None
 
     def check_end_battle(self):
-        # OPPONENT DEFEATED.
-        if not self.battle_end and len(self.opponent_sprites) == 0:
-            self.battle_end = True
-            self.end_battle(self.character)
-        # PLAYER DEFEATED.
-        if len(self.player_sprites) == 0:
-            pygame.quit()
-            exit()
+        if not self.battle_end:
+            if len(self.opponent_sprites) == 0 or len(self.player_sprites) == 0:
+                self.battle_end = True
+                self.end_battle(self.character)
+                # GET COMBAT EXPERIENCE.
+                for monster in self.monster_data["player"].values():
+                    if monster.level <= 15:
+                        monster.update_xp(uniform(0.1, 0.3) * monster.level_up)
 
     # UI.
     def draw_ui(self):
